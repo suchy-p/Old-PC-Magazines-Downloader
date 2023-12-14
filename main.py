@@ -3,21 +3,22 @@ import requests
 import os
 
 
+# TODO refactor for objects
+
 # loop for downloading all issues from given year
 def download_whole_year(year):
     number = 1
-    y = int(year)
+    year = int(year)
     directory = os.path.expanduser("~") + "\\Desktop\\"
 
     while True:
         try:
-            name = "Gambler_{year}_{number}".format(
-                number=str(number).zfill(2), year=y)
+            name = f"Gambler_{year}_{str(number).zfill(2)}"
 
             # url pattern for Gambler
             base_url = requests.get(
-                'https://archive.org/details/gambler_magazine-{year}-{number}'.format(
-                    year=y, number=str(number).zfill(2)))
+                f'https://archive.org/details/gambler_magazine-{year}'
+                f'-{str(number).zfill(2)}')
             soup = bs4.BeautifulSoup(base_url.text, 'lxml')
             # find pdf download link in soup
             pdf_url = soup.find_all("a",
@@ -39,7 +40,7 @@ def download_whole_year(year):
                 # file exists check
                 if os.path.isfile(
                         directory + "Gambler\\" + "{name}.pdf".format(
-                                name=name)):
+                            name=name)):
                     # uncompleted download check
                     try:
                         if os.path.getsize(
@@ -50,13 +51,13 @@ def download_whole_year(year):
                         pass
                     # completed download check
                     else:
-                        print(f"Issue {number} / {y} already downloaded")
+                        print(f"Issue {number} / {year} already downloaded")
                         number += 1
                 # write file
                 else:
                     with open("{name}.pdf".format(name=name), 'wb') as file:
                         file.write(requests.get(download_url).content)
-                    print(f"Issue {number} / {y} downloaded")
+                    print(f"Issue {number} / {year} downloaded")
                     number += 1
 
         except IndexError:
@@ -67,7 +68,7 @@ def download_whole_year(year):
                 continue
             # check for full year ==> number > 12 for monthly magazine
             else:
-                print(f"All issues from year {y} downloaded")
+                print(f"All issues from year {year} downloaded")
                 break
 
 
