@@ -1,24 +1,26 @@
 import bs4
-import requests
 import os
+import requests
+
+from Mags import Mags
+
 
 
 # loop for downloading all issues from given year
-def download_whole_year(year):
+def download_whole_year(magazine, year):
     number = 1
-    y = int(year)
+    year = year
     directory = os.path.expanduser("~") + "\\Desktop\\"
 
     while True:
+        #TODO refactor as method in Mags.Mags
         try:
-            name = "Gambler_{year}_{number}".format(
-                number=str(number).zfill(2), year=y)
+            name = f"{magazine.title}_{year}_{str(number).zfill(2)}"
 
-            # url pattern for Gambler
+            # url pattern for chosen magazine
             base_url = requests.get(
-                'https://archive.org/details/gambler_magazine-{year}-{number}'.format(
-                    year=y, number=str(number).zfill(2)))
-            soup = bs4.BeautifulSoup(base_url.text, 'lxml')
+                f"{magazine.url}-{year}-{str(number).zfill(2)}")
+            soup = bs4.BeautifulSoup(base_url.text, "lxml")
             # find pdf download link in soup
             pdf_url = soup.find_all("a",
                                     {"class": "format-summary download-pill"})
@@ -30,16 +32,15 @@ def download_whole_year(year):
             try:
                 # directory exists check
                 download_directory = os.mkdir(
-                    os.path.join(directory, "Gambler\\"))
+                    os.path.join(directory, magazine.title))
             except FileExistsError:
                 pass
             finally:
-                os.chdir(directory + "Gambler")
+                os.chdir(directory + magazine.title)
 
                 # file exists check
                 if os.path.isfile(
-                        directory + "Gambler\\" + "{name}.pdf".format(
-                                name=name)):
+                        directory + magazine.title + "\\" + f"{name}.pdf"):
                     # uncompleted download check
                     try:
                         if os.path.getsize(
@@ -50,35 +51,40 @@ def download_whole_year(year):
                         pass
                     # completed download check
                     else:
-                        print(f"Issue {number} / {y} already downloaded")
+                        print(f"{magazine.title} issue "
+                              f"{number} / {year} already downloaded")
                         number += 1
                 # write file
                 else:
-                    with open("{name}.pdf".format(name=name), 'wb') as file:
+                    with open(f"{name}.pdf", 'wb') as file:
                         file.write(requests.get(download_url).content)
-                    print(f"Issue {number} / {y} downloaded")
+                    print(f"Issue {number} / {year} downloaded")
                     number += 1
 
         except IndexError:
             # searching for first issue from first year <== change print()
-            if number < 12:
+            if year == magazine.years[0] and number < 12:
                 print("Searching for first issue...\n")
                 number += 1
                 continue
             # check for full year ==> number > 12 for monthly magazine
             else:
-                print(f"All issues from year {y} downloaded")
+                print(f"All issues from year {year} downloaded")
+                number = 1
                 break
 
 
-def download_all(years):
-    all_years = years
+def download_all(magazine):
+    all_years = magazine.years
 
     for year in all_years:
-        download_whole_year(year)
+        download_whole_year(magazine, year)
 
     print("Download completed")
 
 
-download_all([1993, 1994, 1995, 1996, 1997,
-              1998, 1999])
+gambler = Mags.Gambler()
+
+download_all(gambler)
+
+#download_whole_year(gambler, 1997)
