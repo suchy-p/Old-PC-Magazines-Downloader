@@ -11,7 +11,6 @@ class Gambler:
         self.url = "https://archive.org/details/gambler_magazine"
         self.years = (1993, 1994, 1995, 1996, 1997, 1998, 1999)
         self.number = 1
-        #self.directory = os.path.expanduser("~") + "\\Desktop\\"
         self.download_directory = os.path.join((os.path.expanduser("~") +
                                                 "\\Desktop\\"), self.title)
 

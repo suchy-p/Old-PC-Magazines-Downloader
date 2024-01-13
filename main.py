@@ -4,7 +4,6 @@ import requests
 
 from Mags import Mags
 
-# todo connection check == 200
 
 def download_all(years):
     all_years = years
