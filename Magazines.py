@@ -83,9 +83,9 @@ class Gambler:
                     # check for full year ==> number > 12 for monthly magazine
                 else:
                     print(f"All issues from year {y} downloaded")
-                    y += 1
                     self.number = 1
                     break
+
 
 class Reset:
     def __init__(self, ):

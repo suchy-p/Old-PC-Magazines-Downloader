@@ -1,8 +1,8 @@
-import bs4
-import os
+import flet as ft
 import requests
+import Magazines
 
-from Mags import Mags
+magazine = Magazines.CDAction()
 
 
 def download_all(years):
@@ -14,13 +14,9 @@ def download_all(years):
     print("Download completed")
 
 
-#magazine = Mags.Gambler()
-#magazine.download_engine(1998)
-
-#magazine = Mags.Reset()
-#magazine.download_engine(1999)
-
-magazine = Mags.CDAction()
-#magazine.download_engine(1996)
-
-download_all(magazine.years)
+try:
+    check = requests.get(magazine.url, timeout=5)
+except requests.RequestException as err:
+    print(f"Error occurred:\n{err}")
+else:
+    download_all(magazine.years)
