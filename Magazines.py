@@ -59,7 +59,7 @@ class Gambler:
                             f"{self.url}-{y}-{str(self.number).zfill(2)}")
                         soup = bs4.BeautifulSoup(base_url.text, "lxml")
                         # find pdf download link in soup
-                        file_url = soup.find_all(href=re.compile("\d.pdf$"))
+                        file_url = soup.find_all(href=re.compile(r"\d.pdf$"))
                         # pdf download link pattern, index of download link in
                         # file_url
                         download_url = (f"https://archive.org"
@@ -162,7 +162,7 @@ class CDAction:
 
         # base_url = requests.get(self.url)
         soup = bs4.BeautifulSoup(requests.get(self.url).text, 'lxml')
-        file_url = soup.find_all(href=re.compile(y + "_\d+.pdf$"))
+        file_url = soup.find_all(href=re.compile(y + r"_\d+.pdf$"))
 
         try:
             # directory exists check
