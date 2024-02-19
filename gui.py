@@ -1,7 +1,8 @@
+#import threading
+import Magazines
+from threading import Thread
 import tkinter as tk
 import tkinter.ttk as ttk
-import Magazines
-import sys
 
 
 cda = Magazines.CDAction()
@@ -13,21 +14,15 @@ magazines = {cda.title: cda, gambler.title: gambler, reset.title: reset}
 
 # tkinter object
 class App(tk.Tk):
-    def __init__(self):
+    def __init__(self,):
         super().__init__()
-
-        self.minsize(width=300, height=200)
-        self.title("Retro PC Magazines Downloader", )
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=1)
+        self.geometry("400x400")
+        self.resizable(False, False)
         self.selected_magazine = tk.StringVar()
         self.selected_year = tk.StringVar()
-        self.text_box = tk.Text(#app,
-                                height=10,
-                                width=50,
-                                pady=10,
-                                padx=10,
-                                bd=4,
-                                state="disabled",
-                                )
+        self.title("Retro PC Magazines Downloader", )
 
     def magazine_selection(self, event):
         combo_years.set("")
@@ -38,38 +33,69 @@ class App(tk.Tk):
     def year_selection(self, event):
         self.selected_year.set(combo_years.get())
 
-    def download_year(self, event):
-        if (len(self.selected_magazine.get()) != 0 and len(
-                self.selected_year.get()) != 0):
-            magazines.get(self.selected_magazine.get()).download_engine(
-                self.selected_year.get())
+    def download_year(self, *args):
+        magazine = self.selected_magazine.get()
+        year = self.selected_year.get()
+
+        if (len(magazine) != 0 and len(
+                year) != 0):
+
+            btn_download_year.config(state="disabled")
+            btn_download_all.config(state="disabled")
+            combo_magazines.config(state="disabled")
+            combo_years.config(state="disabled")
+
+            magazines.get(magazine).create_file_list(
+                year)
+            magazines.get(magazine).check_existing_directory()
+
+            for item in magazines.get(magazine).issues_index:
+                try:
+                    magazines.get(magazine).current_issue()
+                    magazines.get(magazine).download_selected_year()
+
+                    text_box.config(state="normal")
+                    text_box.insert(1.0,
+                                    f"{magazines.get(magazine).name} "
+                                    f"downloaded\n")
+                    text_box.config(state="disabled")
+
+                except IndexError:
+                    break
+
             combo_years.set("")
+            btn_download_year.config(state="normal")
+            btn_download_all.config(state="normal")
+            combo_magazines.config(state="normal")
+            combo_years.config(state="normal")
 
-        elif len(self.selected_magazine.get()) == 0:
-            app.text_box.config(state="normal")
-            app.text_box.insert(1.0, "Select magazine\n")
-            app.text_box.config(state="disabled")
+        elif len(magazine) == 0:
+            text_box.config(state="normal")
+            text_box.insert(1.0, "Select magazine\n")
+            text_box.config(state="disabled")
 
         else:
-            app.text_box.config(state="normal")
-            app.text_box.insert(1.0, "Select year\n")
-            app.text_box.config(state="disabled")
+            text_box.config(state="normal")
+            text_box.insert(1.0, "Select year\n")
+            text_box.config(state="disabled")
 
-    def download_all(self, event):
-        if len(self.selected_magazine.get()) != 0:
-            all_years = magazines.get(self.selected_magazine.get()).years
-            app.text_box.config(state="normal")
+    def download_all(self,):
+        magazine = self.selected_magazine.get()
+        all_years = magazines.get(self.selected_magazine.get()).years
+
+        if len(magazine) != 0:
+
             for year in all_years:
-                magazines.get(self.selected_magazine.get()).download_engine(
-                    year)
+                self.selected_year = tk.StringVar(value=year)
+                self.download_year()
 
-            app.text_box.insert(1.0, "Download completed\n")
-            app.text_box.config(state="disabled")
+    def thread1(self, func):
+        t1 = Thread(target=self.download_year)
+        t1.start()
 
-        else:
-            app.text_box.config(state="normal")
-            app.text_box.insert(1.0, "Select magazine\n")
-            app.text_box.config(state="disabled")
+    def thread2(self, func):
+        t2 = Thread(target=self.download_all)
+        t2.start()
 
     def quit(self, event):
         self.destroy()
@@ -78,41 +104,63 @@ class App(tk.Tk):
 app = App()
 
 lbl1 = tk.Label(text="Select magazine")
-lbl1.pack(pady=5)
+lbl1.grid(column=0, row=0, pady=10)
 
 combo_magazines = ttk.Combobox(values=[cda.title, gambler.title,
-                                       reset.title], state="readonly", )
-combo_magazines.pack(padx=10, pady=10)
+                                       reset.title],
+                               state="readonly", width=22)
+combo_magazines.grid(column=1, row=0, padx=10, pady=15)
 
-lbl2 = tk.Label(text="Select year")
-lbl2.pack(pady=5)
+lbl2 = tk.Label(text="Select year", )
+lbl2.grid(column=0, row=1, pady=5)
 
 combo_years = ttk.Combobox(
-    state="readonly")
-combo_years.pack(padx=10, pady=10)
+    state="readonly", width=22)
+combo_years.grid(column=1, row=1, padx=10, pady=10)
 
 combo_magazines.bind("<<ComboboxSelected>>", app.magazine_selection)
 combo_years.bind("<<ComboboxSelected>>", app.year_selection)
 
-btn_download_year = ttk.Button(text="Start Download", )
-btn_download_year.pack(padx=10, pady=10)
+lbl3 = tk.Label()
 
-btn_download_all = ttk.Button(text="Download all years")
-btn_download_all.pack(padx=10, pady=15)
+btn_download_year = ttk.Button(text="Start Download", width=20)
+btn_download_year.grid(column=1, row=2, padx=10, pady=10)
 
-app.text_box.pack()
+btn_download_all = ttk.Button(text="Download all years", width=20)
+btn_download_all.grid(column=1, row=3, padx=10, pady=5)
 
-btn_download_year.bind("<Button-1>", app.download_year)
-btn_download_all.bind("<Button-1>", app.download_all)
+lbl4 = tk.Label(height=10,
+                width=50,
+                )
+lbl4.grid(columnspan=2, rowspan=20)
 
+text_box = tk.Text(
+                                lbl4,
+                                height=10,
+                                width=48,
+                                bd=4,
+                                state="disabled",
+                                )
+text_box.grid(column=0, columnspan=2, row=4, rowspan=10, pady=5)
 
-btn_close = ttk.Button(text="Close")
-btn_close.pack(pady=10)
+scrollbar = ttk.Scrollbar(
+    lbl4,
+    orient=tk.VERTICAL,
+    command=text_box.yview,
+                            )
+scrollbar.grid(column=1, row=4, rowspan=10, pady=10, sticky=(tk.NE + tk.SE))
+
+text_box.configure(yscrollcommand=scrollbar.set)
+
+btn_download_year.bind("<Button-1>", app.thread1)
+btn_download_all.bind("<Button-1>", app.thread2)
+
+lbl5 = ttk.Label()
+lbl5.grid(column=1)
+
+btn_close = ttk.Button(lbl5, text="Close")
+btn_close.grid(column=2, row=5, padx=10, pady=5)
 btn_close.bind("<Button-1>", app.quit)
 
-app.text_box.config(state="normal")
-# set variables in constructor, modify in constructor? then for loop in gui?
-app.text_box.insert(1.0, f"{gambler.title} {gambler.years} issue "
-                         f"{gambler.number}")
-
 app.mainloop()
+

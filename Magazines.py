@@ -4,211 +4,212 @@ import re
 import requests
 
 
-class Gambler:
-
+class CDAction:
     def __init__(self, ):
-        self.title = "Gambler"
-        self.url = "https://archive.org/details/gambler_magazine"
-        self.years = (1993, 1994, 1995, 1996, 1997, 1998, 1999)
-        self.number = 1
+        self.current_year = str()
+        self.download_url = None
+        self.file_url = None
+        self.issues = list()
+        self.issues_index = list()
+        self.name = str()
+        self.page_url = "https://archive.org/download/CDA1996-2001/"
+        # years available in this collection
+        self.title = "CD-Action"
+        self.years = (1996, 1997, 1998, 1999, 2000, 2001)
+
         self.download_directory = os.path.join((os.path.expanduser("~") +
                                                 "\\Desktop\\"), self.title)
 
-    def download_engine(self, year):
+    def check_existing_directory(self):
+        # directory exists check
+        try:
+            os.mkdir(self.download_directory)
 
-        y = str(year)
+        except FileExistsError:
+            pass
+        finally:
+            os.chdir(self.download_directory)
 
-        """
-        while loop because => searching for first issue; might be useful
-        for some other magazine with similarly diffused files and structured 
-        urls on archive.org
-        """
-        while True:
+    def create_file_list(self, year):
+        self.current_year = year
+
+        soup = bs4.BeautifulSoup(requests.get(self.page_url).text, 'lxml')
+
+        # [-\d{2}]* == [hyphen|digit*2] occurs zero or more times
+        # searching for possible double issue like CD-Action_001_1996_04-05
+        self.file_url = soup.find_all(href=re.compile(self.current_year +
+                                                      r"_\d+[-\d{2}]*.pdf$"))
+
+        # issues from all years on one list on archive org, creating list of
+        # all urls
+        self.issues = [str(item) for item in self.file_url]
+
+        # indexing issues urls for self.current_year
+        for index, item in enumerate(self.issues):
+            if self.current_year in item:
+                self.issues_index.append(index)
+
+    def current_issue(self):
+        self.download_url = f'{self.page_url}{self.file_url[0].get("href")}'
+        self.name = self.file_url[0].getText()
+        self.file_url.pop(0)
+
+    def download_selected_year(self):
+        # uncompleted download check
+        try:
+            if os.path.getsize(self.name) == 0:
+                os.remove(self.name)
+
+        except FileNotFoundError:
+            pass
+
+        # completed download check
+        if not os.path.isfile(self.name):
+            with open(self.name, 'wb') as file:
+                file.write(requests.get(self.download_url).content)
+
+
+class Gambler:
+
+    def __init__(self, ):
+        self.current_number = 1
+        self.current_year = str()
+        self.download_url = None
+        self.file_url = None
+        self.issues = list()
+        self.issues_index = list()
+        self.name = str()
+        self.numbers = list()
+        self.page_url = "https://archive.org/details/gambler_magazine"
+        self.title = "Gambler"
+        self.years = (1993, 1994, 1995, 1996, 1997, 1998, 1999)
+
+        self.download_directory = os.path.join((os.path.expanduser("~") +
+                                                "\\Desktop\\"), self.title)
+
+    def check_existing_directory(self):
+        # directory exists check
+        try:
+            # existing directory check
+            os.mkdir(self.download_directory)
+
+        except FileExistsError:
+            pass
+
+        finally:
+            os.chdir(self.download_directory)
+
+    def create_file_list(self, year):
+        self.current_year = str(year)
+        self.numbers = [12] if year == "1993" else list(range(1, 13))
+
+        # creating list of issues urls
+        for number in self.numbers:
+            soup = bs4.BeautifulSoup(
+                requests.get(f"{self.page_url}-{self.current_year}-"
+                             f"{str(number).zfill(2)}")
+                .text, 'lxml')
+            self.file_url = soup.find_all(href=re.compile(r"\d.pdf$"))
+
+            self.issues.append(f"https://archive.org"
+                               f"{(self.file_url[0].get('href'))}")
+
+        # indexing issues urls for self.current_year
+        for index, item in enumerate(self.issues):
+            if self.current_year in item:
+                self.issues_index.append(index)
+
+    def current_issue(self):
+        self.download_url = self.issues[0]
+        self.name = (f"{self.title}_{self.current_year}"
+                     f"_{str(self.current_number).zfill(2)}.pdf")
+        self.issues.pop(0)
+
+        if self.current_year != "1993":
+            if self.current_number == 12:
+                self.current_number = 1
+            else:
+                self.current_number += 1
+
+    def download_selected_year(self, ):
+
+        # existing file check
+        if os.path.isfile(self.name):
+
+            # uncompleted download check
             try:
-                # original file name: Gambler_issue_year, not great for
-                # organizing files in folder by name
-                name = f"{self.title}_{y}_{str(self.number).zfill(2)}.pdf"
+                if os.path.getsize(self.name) == 0:
+                    os.remove(self.name)
 
-                try:
-                    # existing directory check
-                    os.mkdir(self.download_directory)
-                except FileExistsError:
-                    pass
-                finally:
-                    os.chdir(self.download_directory)
+            except FileNotFoundError:
+                pass
 
-                    # existing file check
-                    if os.path.isfile(name):
-
-                        # uncompleted download check
-                        try:
-                            if os.path.getsize(name) == 0:
-                                os.remove(name)
-                                continue
-                        except FileNotFoundError:
-                            pass
-                        # completed download check
-                        else:
-                            print(f"{self.title} issue {self.number} / {y} "
-                                  f"already downloaded")
-                            self.number += 1
-
-                    # write file
-                    else:
-                        base_url = requests.get(
-                            f"{self.url}-{y}-{str(self.number).zfill(2)}")
-                        soup = bs4.BeautifulSoup(base_url.text, "lxml")
-                        # find pdf download link in soup
-                        file_url = soup.find_all(href=re.compile(r"\d.pdf$"))
-                        # pdf download link pattern, index of download link in
-                        # file_url
-                        download_url = (f"https://archive.org"
-                                        f"{file_url[0].get('href')}")
-                        print(download_url)
-                        print(f"Downloading issue {self.title} {self.number} "
-                              f"/ {y}")
-                        with open(name, "wb") as file:
-                            file.write(requests.get(download_url).content)
-                        print(f"{self.title} issue {self.number} / {y} "
-                              f"downloaded")
-                        self.number += 1
-
-            except IndexError:
-                # searching for first issue from first year
-                if self.number < 12:
-                    print("Searching for first issue...\n")
-                    self.number += 1
-                    continue
-
-                    # check for full year ==> number > 12 for monthly magazine
-                else:
-                    print(f"All issues from year {y} downloaded")
-                    self.number = 1
-                    break
+        if not os.path.isfile(self.name):
+            with open(self.name, 'wb') as file:
+                file.write(requests.get(self.download_url).content)
 
 
 class Reset:
     def __init__(self, ):
+        self.current_year = str()
+        self.download_url = None
+        self.file_url = None
+        self.issues = list()
+        self.issues_index = list()
+        self.name = str()
+        self.number = int()
+        self.page_url = ("https://archive.org/download/reset-cd-1999-06"
+                         "/Reset%201997-2001/")
         self.title = "Reset"
-        self.url = ("https://archive.org/download/reset-cd-1999-06/Reset"
-                    "%201997-2001/")
         self.years = (1997, 1998, 1999, 2000, 2001)
-        # self.number == index of url on download list, not actual issue number
-        self.number = 0
+
         self.download_directory = os.path.join((os.path.expanduser("~") +
                                                 "\\Desktop\\"), self.title)
 
-    def download_engine(self, year):
-
-        y = str(year)
-
-        # if base_url used (see Gambler) result == Response 200, no data (no
-        # idea why)
-        soup = bs4.BeautifulSoup(requests.get(self.url+y).text, 'lxml')
-        file_url = soup.find_all(href=re.compile(".djvu$"))
-
+    def check_existing_directory(self):
+        # directory exists check
         try:
-            # directory exists check
             os.mkdir(self.download_directory)
+
         except FileExistsError:
             pass
         finally:
             os.chdir(self.download_directory)
 
-        # for loop => file structure organized by years
-        for issue in file_url:
-            name = file_url[self.number].getText().capitalize()
-            download_url = f'{self.url}{y}/{file_url[self.number].get("href")}'
+    def create_file_list(self, year):
+        self.current_year = year
 
-            if os.path.isfile(name):
-                # uncompleted download check
-                try:
-                    if os.path.getsize(name) == 0:
-                        os.remove(name)
-                        continue
-                except FileNotFoundError:
-                    pass
-                else:
-                    print(f"{name} already downloaded")
-                    self.number += 1
-                    continue
-            else:
-                # download file
-                print(f'Downloading {name}')
-                with open(name, 'wb') as file:
-                    file.write(requests.get(download_url).content)
-                self.number += 1
-                print(f"{name} downloaded")
-
-        self.number = 0
-        print(f'All issues from {y} downloaded')
-
-
-class CDAction:
-    def __init__(self, ):
-        self.title = "CD-Action"
-        self.url = "https://archive.org/download/CDA1996-2001/"
-        # not all years in history ofc
-        self.years = (1996, 1997, 1998, 1999, 2000, 2001)
-        # self.number == index of url on download list, not actual issue number
-        self.number = 0
-        self.download_directory = os.path.join((os.path.expanduser("~") +
-                                                "\\Desktop\\"), self.title)
-
-    def download_engine(self, year):
-
-        y = str(year)
-        issue_index = list()
-
-        # base_url = requests.get(self.url)
-        soup = bs4.BeautifulSoup(requests.get(self.url).text, 'lxml')
-        file_url = soup.find_all(href=re.compile(y + r"_\d+.pdf$"))
-
-        try:
-            # directory exists check
-            os.mkdir(self.download_directory)
-        except FileExistsError:
-            pass
-        finally:
-            os.chdir(self.download_directory)
+        soup = bs4.BeautifulSoup(requests.get(self.page_url +
+                                              self.current_year).text,
+                                 'lxml')
+        self.file_url = soup.find_all(href=re.compile(".djvu$"))
 
         # issues from all years on one list on archive org, creating list of
         # all urls
-        issues = [str(item) for item in file_url]
+        self.issues = [str(item) for item in self.file_url]
 
-        # indexing issues urls for given year (y)
-        for index, item in enumerate(issues):
-            if y in item:
-                issue_index.append(index)
+        # indexing issues urls for self.current_year
+        for index, item in enumerate(self.issues):
+            if self.current_year in item:
+                self.issues_index.append(index)
 
-        # loop for downloading all issues from given year
-        for item in issue_index:
-            name = file_url[item].getText()
-            download_url = f'{self.url}{file_url[item].get("href")}'
+    def current_issue(self):
+        self.download_url = (f'{self.page_url}{self.current_year}'
+                             f'/{self.file_url[self.number].get("href")}')
+        #self.download_url = f'{self.page_url}{self.file_url[0].get("href")}'
+        self.name = self.file_url[self.number].getText().capitalize()
+        self.file_url.pop(0)
 
-            if os.path.isfile(name):
-                # uncompleted download check
-                try:
-                    if os.path.getsize(name) == 0:
-                        os.remove(name)
-                        continue
-                except FileNotFoundError:
-                    pass
-                    # completed download check
-                else:
-                    print(f"{name} already downloaded")
-                    self.number += 1
-                    continue
+    def download_selected_year(self):
+        # uncompleted download check
+        try:
+            if os.path.getsize(self.name) == 0:
+                os.remove(self.name)
 
-            else:
-                # download file
-                print(f'Downloading {name}')
-                self.number = item
-                with open(name, 'wb') as file:
-                    file.write(requests.get(download_url).content)
+        except FileNotFoundError:
+            pass
 
-                print(f"{name} downloaded")
-
-        print(f'All issues from {y} downloaded')
-
-
+        # completed download check
+        if not os.path.isfile(self.name):
+            with open(self.name, 'wb') as file:
+                file.write(requests.get(self.download_url).content)
