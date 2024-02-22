@@ -4,21 +4,19 @@ import re
 import requests
 
 
-class CDAction:
-    def __init__(self, ):
+class ParentMagazine:
+    def __init__(self):
         self.current_year = str()
         self.download_url = None
         self.file_url = None
         self.issues = list()
         self.issues_index = list()
         self.name = str()
-        self.page_url = "https://archive.org/download/CDA1996-2001/"
-        # years available in this collection
-        self.title = "CD-Action"
-        self.years = (1996, 1997, 1998, 1999, 2000, 2001)
+        self.page_url = None
+        self.title = str()
+        self.years = None
 
-        self.download_directory = os.path.join((os.path.expanduser("~") +
-                                                "\\Desktop\\"), self.title)
+        self.download_directory = None
 
     def check_existing_directory(self):
         # directory exists check
@@ -29,6 +27,53 @@ class CDAction:
             pass
         finally:
             os.chdir(self.download_directory)
+
+    def create_file_list(self, year):
+        self.current_year = year
+
+        soup = bs4.BeautifulSoup(requests.get(self.page_url +
+                                              self.current_year).text,
+                                 'lxml')
+        self.file_url = soup.find_all(href=re.compile(".pdf$"))
+
+        # issues from all years on one list on archive org, creating list of
+        # all urls
+        self.issues = [str(item) for item in self.file_url]
+
+        # indexing issues urls for self.current_year
+        for index, item in enumerate(self.issues):
+            if self.current_year in item:
+                self.issues_index.append(index)
+            
+    def current_issue(self):
+        self.download_url = f'{self.page_url}{self.file_url[0].get("href")}'
+        self.name = self.file_url[0].getText()
+        self.file_url.pop(0)
+        
+    def download_selected_year(self):
+        # uncompleted download check
+        try:
+            if os.path.getsize(self.name) == 0:
+                os.remove(self.name)
+
+        except FileNotFoundError:
+            pass
+
+        # completed download check
+        if not os.path.isfile(self.name):
+            with open(self.name, 'wb') as file:
+                file.write(requests.get(self.download_url).content)
+        
+    
+class CDAction(ParentMagazine):
+    def __init__(self, ):
+        super().__init__()
+        self.title = "CD-Action"
+        # years available in this collection
+        self.years = (1996, 1997, 1998, 1999, 2000, 2001)
+
+        self.download_directory = os.path.join((os.path.expanduser("~") +
+                                                "\\Desktop\\"), self.title)
 
     def create_file_list(self, year):
         self.current_year = year
@@ -49,55 +94,18 @@ class CDAction:
             if self.current_year in item:
                 self.issues_index.append(index)
 
-    def current_issue(self):
-        self.download_url = f'{self.page_url}{self.file_url[0].get("href")}'
-        self.name = self.file_url[0].getText()
-        self.file_url.pop(0)
 
-    def download_selected_year(self):
-        # uncompleted download check
-        try:
-            if os.path.getsize(self.name) == 0:
-                os.remove(self.name)
-
-        except FileNotFoundError:
-            pass
-
-        # completed download check
-        if not os.path.isfile(self.name):
-            with open(self.name, 'wb') as file:
-                file.write(requests.get(self.download_url).content)
-
-
-class Gambler:
+class Gambler(ParentMagazine):
 
     def __init__(self, ):
+        super().__init__()
         self.current_number = 1
-        self.current_year = str()
-        self.download_url = None
-        self.file_url = None
-        self.issues = list()
-        self.issues_index = list()
-        self.name = str()
-        self.numbers = list()
         self.page_url = "https://archive.org/details/gambler_magazine"
         self.title = "Gambler"
         self.years = (1993, 1994, 1995, 1996, 1997, 1998, 1999)
 
         self.download_directory = os.path.join((os.path.expanduser("~") +
                                                 "\\Desktop\\"), self.title)
-
-    def check_existing_directory(self):
-        # directory exists check
-        try:
-            # existing directory check
-            os.mkdir(self.download_directory)
-
-        except FileExistsError:
-            pass
-
-        finally:
-            os.chdir(self.download_directory)
 
     def create_file_list(self, year):
         self.current_year = str(year)
@@ -131,32 +139,10 @@ class Gambler:
             else:
                 self.current_number += 1
 
-    def download_selected_year(self, ):
 
-        # existing file check
-        if os.path.isfile(self.name):
-
-            # uncompleted download check
-            try:
-                if os.path.getsize(self.name) == 0:
-                    os.remove(self.name)
-
-            except FileNotFoundError:
-                pass
-
-        if not os.path.isfile(self.name):
-            with open(self.name, 'wb') as file:
-                file.write(requests.get(self.download_url).content)
-
-
-class Reset:
+class Reset(ParentMagazine):
     def __init__(self, ):
-        self.current_year = str()
-        self.download_url = None
-        self.file_url = None
-        self.issues = list()
-        self.issues_index = list()
-        self.name = str()
+        super().__init__()
         self.number = int()
         self.page_url = ("https://archive.org/download/reset-cd-1999-06"
                          "/Reset%201997-2001/")
@@ -165,16 +151,6 @@ class Reset:
 
         self.download_directory = os.path.join((os.path.expanduser("~") +
                                                 "\\Desktop\\"), self.title)
-
-    def check_existing_directory(self):
-        # directory exists check
-        try:
-            os.mkdir(self.download_directory)
-
-        except FileExistsError:
-            pass
-        finally:
-            os.chdir(self.download_directory)
 
     def create_file_list(self, year):
         self.current_year = year
@@ -196,20 +172,8 @@ class Reset:
     def current_issue(self):
         self.download_url = (f'{self.page_url}{self.current_year}'
                              f'/{self.file_url[self.number].get("href")}')
-        #self.download_url = f'{self.page_url}{self.file_url[0].get("href")}'
         self.name = self.file_url[self.number].getText().capitalize()
         self.file_url.pop(0)
 
-    def download_selected_year(self):
-        # uncompleted download check
-        try:
-            if os.path.getsize(self.name) == 0:
-                os.remove(self.name)
-
-        except FileNotFoundError:
-            pass
-
-        # completed download check
-        if not os.path.isfile(self.name):
-            with open(self.name, 'wb') as file:
-                file.write(requests.get(self.download_url).content)
+if __name__ == "__main__":
+    main()
