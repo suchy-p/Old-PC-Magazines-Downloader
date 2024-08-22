@@ -44,6 +44,7 @@ class ParentMagazine:
         for index, item in enumerate(self.issues):
             if self.current_year in item:
                 self.issues_index.append(index)
+
             
     def current_issue(self):
         self.download_url = f'{self.page_url}{self.file_url[0].get("href")}'
@@ -68,6 +69,7 @@ class ParentMagazine:
 class CDAction(ParentMagazine):
     def __init__(self, ):
         super().__init__()
+        self.page_url = 'https://archive.org/download/CDA1996-2001/'
         self.title = "CD-Action"
         # years available in this collection
         self.years = (1996, 1997, 1998, 1999, 2000, 2001)
@@ -87,12 +89,18 @@ class CDAction(ParentMagazine):
 
         # issues from all years on one list on archive org, creating list of
         # all urls
-        self.issues = [str(item) for item in self.file_url]
+        self.issues = [item for item in self.file_url]
 
         # indexing issues urls for self.current_year
-        for index, item in enumerate(self.issues):
-            if self.current_year in item:
-                self.issues_index.append(index)
+        self.issues_index = [num for num in range(len(self.issues))]
+
+
+    def current_issue(self):
+        self.name = self.file_url[0].getText()
+        self.download_url = (f'{self.page_url}'
+                             f'{self.file_url.pop(0).get("href")}')
+
+        #self.file_url.pop(0)
 
 
 class Gambler(ParentMagazine):
