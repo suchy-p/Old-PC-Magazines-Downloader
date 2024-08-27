@@ -1,11 +1,12 @@
-import Magazines
 from threading import Thread
 import tkinter as tk
 import tkinter.ttk as ttk
 
+import Magazines
 
-# tkinter object
+
 class App(tk.Tk):
+    # tkinter controller object
     def __init__(self, ):
         super().__init__()
         self.columnconfigure(0, weight=1)
@@ -32,7 +33,7 @@ class App(tk.Tk):
         if (len(magazine) != 0 and len(
                 year) != 0):
 
-            # disable all interactive ui elements except quit when starting
+            # disable all interactive ui elements except 'close' when starting
             # download
             view.btn_download_year.config(state="disabled")
             view.btn_download_all.config(state="disabled")
@@ -80,6 +81,7 @@ class App(tk.Tk):
         magazine = self.selected_magazine.get()
         all_years = magazines.get(self.selected_magazine.get()).years
 
+        # check if magazine is selected
         if len(magazine) != 0:
 
             for year in all_years:
@@ -99,6 +101,7 @@ class App(tk.Tk):
 
 
 class View:
+    # tkinter view object
     def __init__(self):
         self.lbl1 = tk.Label(text="Select magazine")
 
@@ -140,33 +143,42 @@ class View:
         self.lbl4 = ttk.Label()
         self.btn_close = ttk.Button(self.lbl4, text="Close")
 
+# create controller and view instances
+app = App()
+view = View()
 
+# create magazines instances
 cda = Magazines.CDAction()
 gambler = Magazines.Gambler()
 reset = Magazines.Reset()
 
+# dict for mags dropdown select list (combobox in tkinter)
 magazines = {cda.title: cda, gambler.title: gambler, reset.title: reset}
-app = App()
-view = View()
 
+# label and dropdown for 'select magazine'
 view.lbl1.grid(column=0, row=0, pady=10)
 view.combo_magazines.grid(column=1, row=0, padx=10, pady=15)
 
+# label and dropdown for 'select year'
 view.lbl2.grid(column=0, row=1, pady=5)
 view.combo_years.grid(column=1, row=1, padx=10, pady=10)
 
+# 'download year' button
 view.btn_download_year.grid(column=1, row=2, padx=10, pady=10)
 view.btn_download_year.bind("<Button-1>", app.thread1)
 
+# 'download all' button
 view.btn_download_all.grid(column=1, row=3, padx=10, pady=5)
 view.btn_download_all.bind("<Button-1>", app.thread2)
 
+# scrollbar
 view.lbl3.grid(columnspan=2, rowspan=20)
 view.text_box.grid(column=0, columnspan=2, row=4, rowspan=10, pady=5)
 view.scrollbar.grid(column=1, row=4, rowspan=10, pady=10, sticky=(tk.NE +
                                                                   tk.SE))
 view.text_box.configure(yscrollcommand=view.scrollbar.set)
 
+# 'close' button
 view.lbl4.grid(column=1)
 view.btn_close.grid(column=2, row=5, padx=10, pady=5)
 view.btn_close.bind("<Button-1>", app.quit)
