@@ -4,6 +4,14 @@ import tkinter.ttk as ttk
 
 import Magazines
 
+# create magazines instances
+cda = Magazines.CDAction()
+gambler = Magazines.Gambler()
+reset = Magazines.Reset()
+
+# dict for mags dropdown select list (combobox in tkinter)
+magazines = {cda.title: cda, gambler.title: gambler, reset.title: reset}
+
 
 class App(tk.Tk):
     # tkinter controller object
@@ -11,14 +19,14 @@ class App(tk.Tk):
         super().__init__()
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
-        self.geometry("400x400")
+        self.geometry('400x400')
         self.resizable(False, False)
         self.selected_magazine = tk.StringVar()
         self.selected_year = tk.StringVar()
-        self.title("Retro PC Magazines Downloader", )
+        self.title('Retro PC Magazines Downloader', )
 
     def magazine_selection(self, event):
-        view.combo_years.set("")
+        view.combo_years.set('')
         self.selected_magazine.set(view.combo_magazines.get())
         view.combo_years.configure(values=([year for year in magazines.get(
             view.combo_magazines.get()).years]))
@@ -35,10 +43,10 @@ class App(tk.Tk):
 
             # disable all interactive ui elements except 'close' when starting
             # download
-            view.btn_download_year.config(state="disabled")
-            view.btn_download_all.config(state="disabled")
-            view.combo_magazines.config(state="disabled")
-            view.combo_years.config(state="disabled")
+            view.btn_download_year.config(state='disabled')
+            view.btn_download_all.config(state='disabled')
+            view.combo_magazines.config(state='disabled')
+            view.combo_years.config(state='disabled')
 
             magazines.get(magazine).create_file_list(
                 year)
@@ -49,33 +57,33 @@ class App(tk.Tk):
                     magazines.get(magazine).current_issue()
                     magazines.get(magazine).download_selected_year()
 
-                    view.text_box.config(state="normal")
+                    view.text_box.config(state='normal')
                     view.text_box.insert(1.0,
-                                         f"{magazines.get(magazine).name} "
-                                         f"downloaded\n")
-                    view.text_box.config(state="disabled")
+                                         f'{magazines.get(magazine).name} '
+                                         f'downloaded\n')
+                    view.text_box.config(state='disabled')
 
                 except IndexError:
                     break
 
             # enable all interactive ui elements after finished download
-            view.combo_years.set("")
-            view.btn_download_year.config(state="normal")
-            view.btn_download_all.config(state="normal")
-            view.combo_magazines.config(state="normal")
-            view.combo_years.config(state="normal")
+            view.combo_years.set('')
+            view.btn_download_year.config(state='normal')
+            view.btn_download_all.config(state='normal')
+            view.combo_magazines.config(state='normal')
+            view.combo_years.config(state='normal')
 
         elif len(magazine) == 0:
             # check if magazine is selected
-            view.text_box.config(state="normal")
-            view.text_box.insert(1.0, "Select magazine\n")
-            view.text_box.config(state="disabled")
+            view.text_box.config(state='normal')
+            view.text_box.insert(1.0, 'Select magazine\n')
+            view.text_box.config(state='disabled')
 
         else:
             # check if year is selected
-            view.text_box.config(state="normal")
-            view.text_box.insert(1.0, "Select year\n")
-            view.text_box.config(state="disabled")
+            view.text_box.config(state='normal')
+            view.text_box.insert(1.0, 'Select year\n')
+            view.text_box.config(state='disabled')
 
     def download_all(self, ):
         magazine = self.selected_magazine.get()
@@ -103,26 +111,26 @@ class App(tk.Tk):
 class View:
     # tkinter view object
     def __init__(self):
-        self.lbl1 = tk.Label(text="Select magazine")
+        self.lbl1 = tk.Label(text='Select magazine')
 
         self.combo_magazines = ttk.Combobox(
             values=[cda.title, gambler.title,
                     reset.title],
-            state="readonly",
+            state='readonly',
             width=22
         )
 
-        self.lbl2 = tk.Label(text="Select year", )
+        self.lbl2 = tk.Label(text='Select year', )
 
-        self.combo_years = ttk.Combobox(state="readonly", width=22)
+        self.combo_years = ttk.Combobox(state='readonly', width=22)
 
-        self.combo_magazines.bind("<<ComboboxSelected>>",
+        self.combo_magazines.bind('<<ComboboxSelected>>',
                                   app.magazine_selection)
-        self.combo_years.bind("<<ComboboxSelected>>", app.year_selection)
+        self.combo_years.bind('<<ComboboxSelected>>', app.year_selection)
 
-        self.btn_download_year = ttk.Button(text="Start Download", width=20)
+        self.btn_download_year = ttk.Button(text='Start Download', width=20)
 
-        self.btn_download_all = ttk.Button(text="Download all years", width=20)
+        self.btn_download_all = ttk.Button(text='Download all years', width=20)
 
         self.lbl3 = tk.Label(height=10, width=50)
 
@@ -131,7 +139,7 @@ class View:
             height=10,
             width=48,
             bd=4,
-            state="disabled",
+            state='disabled',
         )
 
         self.scrollbar = ttk.Scrollbar(
@@ -141,19 +149,11 @@ class View:
         )
 
         self.lbl4 = ttk.Label()
-        self.btn_close = ttk.Button(self.lbl4, text="Close")
+        self.btn_close = ttk.Button(self.lbl4, text='Close')
 
 # create controller and view instances
 app = App()
 view = View()
-
-# create magazines instances
-cda = Magazines.CDAction()
-gambler = Magazines.Gambler()
-reset = Magazines.Reset()
-
-# dict for mags dropdown select list (combobox in tkinter)
-magazines = {cda.title: cda, gambler.title: gambler, reset.title: reset}
 
 # label and dropdown for 'select magazine'
 view.lbl1.grid(column=0, row=0, pady=10)
@@ -165,11 +165,11 @@ view.combo_years.grid(column=1, row=1, padx=10, pady=10)
 
 # 'download year' button
 view.btn_download_year.grid(column=1, row=2, padx=10, pady=10)
-view.btn_download_year.bind("<Button-1>", app.thread1)
+view.btn_download_year.bind('<Button-1>', app.thread1)
 
 # 'download all' button
 view.btn_download_all.grid(column=1, row=3, padx=10, pady=5)
-view.btn_download_all.bind("<Button-1>", app.thread2)
+view.btn_download_all.bind('<Button-1>', app.thread2)
 
 # scrollbar
 view.lbl3.grid(columnspan=2, rowspan=20)
@@ -181,7 +181,7 @@ view.text_box.configure(yscrollcommand=view.scrollbar.set)
 # 'close' button
 view.lbl4.grid(column=1)
 view.btn_close.grid(column=2, row=5, padx=10, pady=5)
-view.btn_close.bind("<Button-1>", app.quit)
+view.btn_close.bind('<Button-1>', app.quit)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.mainloop()

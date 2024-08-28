@@ -72,12 +72,13 @@ class ParentMagazine:
 class CDAction(ParentMagazine):
     def __init__(self, ):
         super().__init__()
-        self.download_directory = os.path.join((os.path.expanduser("~") +
-                                                "\\Desktop\\"), self.title)
         self.page_url = 'https://archive.org/download/CDA1996-2001/'
         self.title = "CD-Action"
         # years available in this collection
         self.years = (1996, 1997, 1998, 1999, 2000, 2001)
+
+        self.download_directory = os.path.join((os.path.expanduser("~") +
+                                                "\\Desktop\\"), self.title)
 
 
 
@@ -113,11 +114,12 @@ class Gambler(ParentMagazine):
     def __init__(self, ):
         super().__init__()
         self.current_number = 1
-        self.download_directory = os.path.join((os.path.expanduser("~") +
-                                                "\\Desktop\\"), self.title)
         self.page_url = "https://archive.org/details/gambler_magazine"
         self.title = "Gambler"
         self.years = (1993, 1994, 1995, 1996, 1997, 1998, 1999)
+
+        self.download_directory = os.path.join((os.path.expanduser("~") +
+                                                "\\Desktop\\"), self.title)
 
 
     def create_file_list(self, year):
