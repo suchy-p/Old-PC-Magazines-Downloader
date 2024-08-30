@@ -20,12 +20,11 @@ class ParentMagazine:
 
     def check_existing_directory(self):
         # check if download dir was already created with previous run
-        try:
+        if not os.path.isdir(self.download_directory):
             os.mkdir(self.download_directory)
-        except FileExistsError:
-            pass
-        finally:
-            os.chdir(self.download_directory)
+
+        os.chdir(self.download_directory)
+
 
     def create_file_list(self, year):
         # creates list of files for download from selected year
