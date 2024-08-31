@@ -52,19 +52,36 @@ class App(tk.Tk):
                 year)
             magazines.get(magazine).check_existing_directory()
 
-            for item in magazines.get(magazine).issues_index:
-                try:
-                    magazines.get(magazine).current_issue()
-                    magazines.get(magazine).download_selected_year()
+            #check if files are still available to download
+            """sadly, looks like by the end of August 2024 all pdfs of
+            CD-Action (not only from collection used in this app) has been
+            removed from archive.org; reason unknown, probably some copyright
+            issues (CDA is still published)
+            """
+            if len(magazines.get(magazine).issues) == 0:
+                view.text_box.config(state='normal')
+                view.text_box.insert(1.0,
+                                     f'\nNo files to download found.\n'
+                                     f'Check your internet connection\nor if '
+                                     f'url is still valid:\n'
+                                     f'{magazines.get(magazine).page_url}\n')
+                view.text_box.config(state='disabled')
+            else:
+                for item in magazines.get(magazine).issues_index:
 
-                    view.text_box.config(state='normal')
-                    view.text_box.insert(1.0,
-                                         f'{magazines.get(magazine).name} '
-                                         f'downloaded\n')
-                    view.text_box.config(state='disabled')
+                    try:
+                        magazines.get(magazine).current_issue()
+                        magazines.get(magazine).download_selected_year()
 
-                except IndexError:
-                    break
+                        view.text_box.config(state='normal')
+                        view.text_box.insert(1.0,
+                                             f'{magazines.get(magazine).
+                                             name} downloaded\n')
+                        view.text_box.config(state='disabled')
+
+                    except IndexError:
+                        break
+
 
             # enable all interactive ui elements after finished download
             view.combo_years.set('')
