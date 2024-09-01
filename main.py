@@ -38,8 +38,8 @@ class App(tk.Tk):
         magazine = self.selected_magazine.get()
         year = self.selected_year.get()
 
-        if (len(magazine) != 0 and len(
-                year) != 0):
+        # check if selection has been made
+        if len(magazine) != 0 and len(year) != 0:
 
             # disable all interactive ui elements except 'close' when starting
             # download
